@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       max_cycles:
-        description: 'Number of channel cycles (Default: 0 = Infinite / Continuous Loop)'
+        description: 'Number of channel cycles (Default: 2 cycles then stop and close)'
         required: false
-        default: '0'
+        default: '2'
         type: string
       cycle_break_min:
         description: 'Minimum break time between cycles (seconds)'
@@ -148,7 +148,7 @@ jobs:
           fi
 
           # 6. Prepare automation command
-          MAX_CYCLES="${{ github.event.inputs.max_cycles || '0' }}"
+          MAX_CYCLES="${{ github.event.inputs.max_cycles || '2' }}"
           BREAK_MIN="${{ github.event.inputs.cycle_break_min || '120' }}"
           BREAK_MAX="${{ github.event.inputs.cycle_break_max || '300' }}"
 

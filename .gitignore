@@ -1,0 +1,6 @@
+ngram/
+session.dat
+__pycache__/
+*.py[cod]
+*$py.class
+.env

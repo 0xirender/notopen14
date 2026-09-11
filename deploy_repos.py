@@ -9,9 +9,13 @@ import subprocess
 import sys
 
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 def run_cmd(cmd, cwd=None, check=True):
     print(f"[RUN] {cmd}")
-    res = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+    res = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if res.stdout:
         print(res.stdout.strip())
     if res.stderr and res.returncode != 0:
@@ -58,9 +62,9 @@ def main():
     
     run_cmd("git add -A", cwd=root_dir)
     # Check if there are changes to commit
-    st = subprocess.run("git status --porcelain", shell=True, cwd=root_dir, capture_output=True, text=True)
+    st = subprocess.run("git status --porcelain", shell=True, cwd=root_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if st.stdout.strip():
-        run_cmd('git commit -m "Initial commit Telegram Automation"', cwd=root_dir)
+        run_cmd('git commit -m "Update deployment script"', cwd=root_dir)
     else:
         print("[*] Git working tree clean, ready to push.")
 
@@ -77,36 +81,37 @@ def main():
         print(f"========================================================")
 
         # Check if repo exists, create if not
-        check_res = subprocess.run(f"gh repo view {full_repo}", shell=True, capture_output=True, text=True)
+        check_res = subprocess.run(f"gh repo view {full_repo}", shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
         if check_res.returncode != 0:
             print(f"[*] Creating repo {full_repo} on GitHub...")
             run_cmd(f"gh repo create {full_repo} --public --confirm")
         else:
-            print(f"[✓] Repo {full_repo} already exists.")
+            print(f"[OK] Repo {full_repo} already exists.")
 
         # Set GitHub Action secrets
         for k, v in secrets.items():
             print(f"[*] Setting secret {k} on {full_repo}...")
-            # Use subprocess with stdin or -b flag
             proc = subprocess.run(
                 ["gh", "secret", "set", k, "-b", str(v), "--repo", full_repo],
                 capture_output=True,
-                text=True
+                text=True,
+                encoding="utf-8",
+                errors="replace"
             )
             if proc.returncode != 0:
                 print(f"[!] Warning setting secret {k}: {proc.stderr.strip()}")
             else:
-                print(f"[✓] Secret {k} set.")
+                print(f"[OK] Secret {k} set.")
 
         # Push files to remote
         print(f"[*] Pushing root files to {full_repo}...")
         remote_url = f"https://github.com/{full_repo}.git"
         push_cmd = f"git push {remote_url} main --force"
         run_cmd(push_cmd, cwd=root_dir)
-        print(f"[✓] Successfully deployed and synced {full_repo}!")
+        print(f"[OK] Successfully deployed and synced {full_repo}!")
 
     print("\n========================================================")
-    print(" [★] ALL 20 REPOSITORIES CREATED, SECRETS ADDED & FILES PUSHED!")
+    print(" [*] ALL 20 REPOSITORIES CREATED, SECRETS ADDED & FILES PUSHED!")
     print("========================================================\n")
 
 
